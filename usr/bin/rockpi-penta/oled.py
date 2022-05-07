@@ -77,7 +77,12 @@ def put_disk_info():
         page = [{'xy': (0, 2), 'text': text1, 'fill': 255, 'font': font['14']}]
 
     return page
+def put_xch_info():
+    xch = misc.get_xch_info()
+    text1 = 'XCH: {}'.format(xch)
+    page = [{'xy': (0, 2), 'text': text1, 'fill': 255, 'font': font['14']}]
 
+    return page
 
 def gen_pages():
     pages = {
@@ -90,7 +95,8 @@ def gen_pages():
             {'xy': (0, 2), 'text': misc.get_info('cpu'), 'fill': 255, 'font': font['12']},
             {'xy': (0, 18), 'text': misc.get_info('men'), 'fill': 255, 'font': font['12']},
         ],
-        2: put_disk_info()
+        2: put_disk_info(),
+        3: put_xch_info()
     }
 
     return pages

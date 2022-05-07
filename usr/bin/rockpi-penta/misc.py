@@ -34,6 +34,8 @@ def set_mode(pin, mode=1):
 
 def check_output(cmd):
     return subprocess.check_output(cmd, shell=True).decode().strip()
+def check_output_cwd(cmd,cwd,env):
+    return subprocess.check_output(cmd,cwd=cwd,env, shell=True).decode().strip()
 
 
 def check_call(cmd):
@@ -127,6 +129,13 @@ def watch_key(q=None):
     while True:
         q.put(read_key(pattern, size))
 
+def get_xch_info(cache={}):
+    if not cache.get('time') or time.time() - cache['time'] > 30:
+        info = {}
+        #need to navigate to folder then activtae venv then run cmd
+        cmd = "chia farm summary | awk 'NR==2{printf $4}'"
+        xch = check_output(cmd,"chia-blockchain/","/home/scott/chia-blockchain/venv")
+    return xch
 
 def get_disk_info(cache={}):
     if not cache.get('time') or time.time() - cache['time'] > 30:
