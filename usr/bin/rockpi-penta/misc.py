@@ -130,7 +130,7 @@ def get_xch_info(cache={}):
     if not cache.get('time') or time.time() - cache['time'] > 30:
         info = {}
         #need to navigate to folder then activtae venv then run cmd
-        cmd = "cd chia-blockcahin && . ./activate && chia farm summary | awk 'NR==2{printf $4}' && deativate"
+        cmd = "cd /home/XXX/chia-blockchain/ && . ./activate && chia farm summary | awk 'NR==2{printf $4}' && deativate"
         xch = check_output(cmd)
     return xch
 
