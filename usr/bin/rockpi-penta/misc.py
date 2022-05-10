@@ -47,7 +47,7 @@ def check_output(cmd):
     return subprocess.check_output(cmd, shell=True).decode().strip()
 
 def run_output(cmd):
-    return subprocess.run(cmd, shell=True, check=True,capture_output=True,text=True,preexec_fn=demote(default_gid,default_uid)).stdout
+    return subprocess.run(cmd, shell=True, check=True,capture_output=True,text=True,preexec_fn=demote(conf['user']['gid'],conf['user']['uid'])).stdout
 
 def check_call(cmd):
     return subprocess.check_call(cmd, shell=True)
@@ -93,6 +93,11 @@ def read_conf():
         conf['slider']['time'] = cfg.getfloat('slider', 'time')
         conf['oled']['rotate'] = cfg.getboolean('oled', 'rotate')
         conf['oled']['f-temp'] = cfg.getboolean('oled', 'f-temp')
+        #chia-blockchain
+        conf['user']['uid'] = cfg.getint('user','user_uid')
+        conf['user']['gid'] = cfg.getint('user','user_gid')
+        #disks
+        conf['disk'] = cfg.get('disk','mnt_points')
     except Exception:
         # fan
         conf['fan']['lv0'] = 35
@@ -111,7 +116,9 @@ def read_conf():
         conf['slider']['time'] = 10  # second
         conf['oled']['rotate'] = False
         conf['oled']['f-temp'] = False
-
+        #chia-blockchain
+        conf['user']['uid'] = 1000
+        conf['user']['gid'] = 1000
     return conf
 
 
@@ -144,7 +151,7 @@ def get_xch_info(cache={}):
     if not cache.get('time') or time.time() - cache['time'] > 3600:
         # need to navigate to folder then activtae venv then run cmd
 
-        cmd = "cd /home/"+get_username(default_uid)+"/chia-blockchain/ && . ./activate && chia farm summary | awk '{ if (NR==2||NR==5) {print $4;} else if (NR==1) {print $3;}}' && deactivate"       # info = {}
+        cmd = "cd /home/"+get_username(conf['user']['uid'])+"/chia-blockchain/ && . ./activate && chia farm summary | awk '{ if (NR==2||NR==5) {print $4;} else if (NR==1) {print $3;}}' && deactivate"       # info = {}
         # info['chia'] = run_output(cmd)
         xch_list = run_output(cmd).split('\n')
         cache['info_status'] = xch_list[0]
@@ -166,6 +173,18 @@ def get_disk_info(cache={}):
 
     return cache['info']
 
+def get_disk_info_mnt(cache={}):
+    if not cache.get('time') or time.time() - cache['time'] > 30:
+        info = {}
+        cmd = "df -h | awk '$NF==\"/\"{printf \"%s\", $5}'"
+        info['root'] = check_output(cmd)
+        for x in conf['disk'].split('|'):
+            cmd = "df -Bg | awk '$6=={} {{printf \"%s\", $5}}'".format(x)
+            info[x] = check_output(cmd)
+        cache['info'] = list(zip(*info.items()))
+        cache['time'] = time.time()
+
+    return cache['info']
 
 def slider_next(pages):
     conf['idx'].value += 1

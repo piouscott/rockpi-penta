@@ -56,7 +56,7 @@ def goodbye():
 
 
 def put_disk_info():
-    k, v = misc.get_disk_info()
+    k, v = misc.get_disk_info_mnt() # get_disk_info()
     text1 = 'Disk: {} {}'.format(k[0], v[0])
 
     if len(k) == 5:
