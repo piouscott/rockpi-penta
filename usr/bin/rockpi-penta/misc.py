@@ -22,9 +22,6 @@ cmds = {
 
 lv2dc = OrderedDict({'lv3': 0, 'lv2': 0.25, 'lv1': 0.5, 'lv0': 0.75})
 
-default_gid = 1000
-default_uid = 1000
-
 def set_mode(pin, mode=1):
     try:
         pin = mraa.Gpio(pin)
@@ -42,13 +39,11 @@ def demote(user_uid, user_gid):
 
         return set_ids
 def get_username(uid):
-    return subprocess.run("lslogins -u | awk '$1 == {} {{printf $2}}'".format(uid),shell=True, check=True, capture_output=True,text=True).stdout
-def check_output(cmd):
+    return subprocess.run("lslogins -u | awk '$1 == {} {{printf $2}}'".format(uid),shell=True, check=True, capture_o$def check_output(cmd):
     return subprocess.check_output(cmd, shell=True).decode().strip()
 
 def run_output(cmd):
-    return subprocess.run(cmd, shell=True, check=True,capture_output=True,text=True,preexec_fn=demote(conf['user']['gid'],conf['user']['uid'])).stdout
-
+    return subprocess.run(cmd, shell=True, check=True,capture_output=True,text=True,preexec_fn=demote(conf['user']['$
 def check_call(cmd):
     return subprocess.check_call(cmd, shell=True)
 
@@ -151,8 +146,7 @@ def get_xch_info(cache={}):
     if not cache.get('time') or time.time() - cache['time'] > 3600:
         # need to navigate to folder then activtae venv then run cmd
 
-        cmd = "cd /home/"+get_username(conf['user']['uid'])+"/chia-blockchain/ && . ./activate && chia farm summary | awk '{ if (NR==2||NR==5) {print $4;} else if (NR==1) {print $3;}}' && deactivate"       # info = {}
-        # info['chia'] = run_output(cmd)
+        cmd = "cd /home/"+get_username(conf['user']['uid'])+"/chia-blockchain/ && . ./activate && chia farm summary $        # info['chia'] = run_output(cmd)
         xch_list = run_output(cmd).split('\n')
         cache['info_status'] = xch_list[0]
         cache['info_xch'] = xch_list[1]
@@ -179,8 +173,8 @@ def get_disk_info_mnt(cache={}):
         cmd = "df -h | awk '$NF==\"/\"{printf \"%s\", $5}'"
         info['root'] = check_output(cmd)
         for x in conf['disk'].split('|'):
-            cmd = "df -Bg | awk '$6=={} {{printf \"%s\", $5}}'".format(x)
-            info[x] = check_output(cmd)
+            cmd = "df -Bg | awk '$6==\"{0}\" {{print {1}, $5}}'".format(x,x.split("/")[len(x.split("/"))-1])
+            info[x.split("/")[len(x.split("/"))-1]] = check_output(cmd)
         cache['info'] = list(zip(*info.items()))
         cache['time'] = time.time()
 
@@ -204,7 +198,6 @@ def fan_temp2dc(t):
 
 def fan_switch():
     conf['run'].value = not(conf['run'].value)
-
 
 def get_func(key):
     return conf['key'].get(key, 'none')
