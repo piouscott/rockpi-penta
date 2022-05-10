@@ -39,11 +39,12 @@ def demote(user_uid, user_gid):
 
         return set_ids
 def get_username(uid):
-    return subprocess.run("lslogins -u | awk '$1 == {} {{printf $2}}'".format(uid),shell=True, check=True, capture_o$def check_output(cmd):
+    return return subprocess.run("lslogins -u | awk '$1 == {} {{printf $2}}'".format(uid),shell=True, check=True, capture_output=True,text=True).stdout
+def check_output(cmd):
     return subprocess.check_output(cmd, shell=True).decode().strip()
 
 def run_output(cmd):
-    return subprocess.run(cmd, shell=True, check=True,capture_output=True,text=True,preexec_fn=demote(conf['user']['$
+    return return subprocess.run(cmd, shell=True, check=True,capture_output=True,text=True,preexec_fn=demote(conf['user']['gid'],conf['user']['uid'])).stdout
 def check_call(cmd):
     return subprocess.check_call(cmd, shell=True)
 
@@ -146,7 +147,7 @@ def get_xch_info(cache={}):
     if not cache.get('time') or time.time() - cache['time'] > 3600:
         # need to navigate to folder then activtae venv then run cmd
 
-        cmd = "cd /home/"+get_username(conf['user']['uid'])+"/chia-blockchain/ && . ./activate && chia farm summary $        # info['chia'] = run_output(cmd)
+        cmd = "cd /home/"+get_username(conf['user']['uid'])+"/chia-blockchain/ && . ./activate && chia farm summary | awk '{ if (NR==2||NR==5) {print $4;} else if (NR==1) {print $3;}}' && deactivate"
         xch_list = run_output(cmd).split('\n')
         cache['info_status'] = xch_list[0]
         cache['info_xch'] = xch_list[1]
