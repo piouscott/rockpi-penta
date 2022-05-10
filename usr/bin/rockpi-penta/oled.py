@@ -43,13 +43,13 @@ def disp_show():
 
 
 def welcome():
-    draw.text((0, 0), 'ROCK Pi SATA HAT', font=font['14'], fill=255)
-    draw.text((32, 16), 'loading...', font=font['12'], fill=255)
+    draw.text((0, 0), 'ROCK Pi- NAS', font=font['14'], fill=255)
+    draw.text((32, 16), 'chargement...', font=font['12'], fill=255)
     disp_show()
 
 
 def goodbye():
-    draw.text((32, 8), 'Good Bye ~', font=font['14'], fill=255)
+    draw.text((32, 8), 'Au revoir ~', font=font['14'], fill=255)
     disp_show()
     time.sleep(2)
     disp_show()  # clear
@@ -77,10 +77,17 @@ def put_disk_info():
         page = [{'xy': (0, 2), 'text': text1, 'fill': 255, 'font': font['14']}]
 
     return page
+
 def put_xch_info():
     xch = misc.get_xch_info()
-    text1 = 'XCH: {}'.format(xch)
-    page = [{'xy': (0, 2), 'text': text1, 'fill': 255, 'font': font['14']}]
+    text1 = 'Etat: {}'.format(xch['info_status'])
+    text2 = 'XCH: {}'.format(xch['info_xch'])
+    text3 = 'LHF: {}'.format(xch['info_height'])
+    page = [
+            {'xy': (0, -2), 'text': text1, 'fill': 255, 'font': font['11']},
+            {'xy': (0, 10), 'text': text2, 'fill': 255, 'font': font['11']},
+            {'xy': (0, 21), 'text': text3, 'fill': 255, 'font': font['11']},
+    ]
 
     return page
 

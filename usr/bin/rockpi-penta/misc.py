@@ -22,6 +22,8 @@ cmds = {
 
 lv2dc = OrderedDict({'lv3': 0, 'lv2': 0.25, 'lv1': 0.5, 'lv0': 0.75})
 
+default_gid = 1000
+default_uid = 1000
 
 def set_mode(pin, mode=1):
     try:
@@ -30,10 +32,22 @@ def set_mode(pin, mode=1):
         pin.write(mode)
     except Exception as ex:
         print(ex)
+def demote(user_uid, user_gid):
+        """Pass the function 'set_ids' to preexec_fn, rather than just calling
+        setuid and setgid. This will change the ids for that subprocess only"""
 
+        def set_ids():
+                os.setgid(user_gid)
+                os.setuid(user_uid)
 
+        return set_ids
+def get_username(uid):
+    return subprocess.run("lslogins -u | awk '$1 == {} {{printf $2}}'".format(uid),shell=True, check=True, capture_output=True,text=True).stdout
 def check_output(cmd):
     return subprocess.check_output(cmd, shell=True).decode().strip()
+
+def run_output(cmd):
+    return subprocess.run(cmd, shell=True, check=True,capture_output=True,text=True,preexec_fn=demote(default_gid,default_uid)).stdout
 
 def check_call(cmd):
     return subprocess.check_call(cmd, shell=True)
@@ -127,12 +141,17 @@ def watch_key(q=None):
         q.put(read_key(pattern, size))
 
 def get_xch_info(cache={}):
-    if not cache.get('time') or time.time() - cache['time'] > 30:
-        info = {}
-        #need to navigate to folder then activtae venv then run cmd
-        cmd = "cd /home/XXX/chia-blockchain/ && . ./activate && chia farm summary | awk 'NR==2{printf $4}' && deactivate"
-        xch = check_output(cmd)
-    return xch
+    if not cache.get('time') or time.time() - cache['time'] > 3600:
+        # need to navigate to folder then activtae venv then run cmd
+
+        cmd = "cd /home/"+get_username(default_uid)+"/chia-blockchain/ && . ./activate && chia farm summary | awk '{ if (NR==2||NR==5) {print $4;} else if (NR==1) {print $3;}}' && deactivate"       # info = {}
+        # info['chia'] = run_output(cmd)
+        xch_list = run_output(cmd).split('\n')
+        cache['info_status'] = xch_list[0]
+        cache['info_xch'] = xch_list[1]
+        cache['info_height'] = xch_list[2]
+        cache['time'] = time.time()
+    return cache
 
 def get_disk_info(cache={}):
     if not cache.get('time') or time.time() - cache['time'] > 30:
