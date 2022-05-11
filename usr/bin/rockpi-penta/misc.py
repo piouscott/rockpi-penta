@@ -9,6 +9,8 @@ import subprocess
 import multiprocessing as mp
 from configparser import ConfigParser
 from collections import defaultdict, OrderedDict
+from libretranslatepy import LibreTranslateAPI
+
 
 cmds = {
     'blk': "lsblk | awk '{print $1}'",
@@ -21,6 +23,12 @@ cmds = {
 }
 
 lv2dc = OrderedDict({'lv3': 0, 'lv2': 0.25, 'lv1': 0.5, 'lv0': 0.75})
+
+def translate(x):
+    message = 'error'
+    libtranslate = LibreTranslateAPI("https://translate.argosopentech.com/")
+    message = libtranslate.translate(x,"en",conf['language'])
+    return message
 
 def set_mode(pin, mode=1):
     try:
@@ -39,16 +47,15 @@ def demote(user_uid, user_gid):
 
         return set_ids
 def get_username(uid):
-    return return subprocess.run("lslogins -u | awk '$1 == {} {{printf $2}}'".format(uid),shell=True, check=True, capture_output=True,text=True).stdout
+    return subprocess.run("lslogins -u | awk '$1 == {} {{printf $2}}'".format(uid),shell=True, check=True, capture_output=True,text=True).stdout
 def check_output(cmd):
     return subprocess.check_output(cmd, shell=True).decode().strip()
 
 def run_output(cmd):
-    return return subprocess.run(cmd, shell=True, check=True,capture_output=True,text=True,preexec_fn=demote(conf['user']['gid'],conf['user']['uid'])).stdout
+    return subprocess.run(cmd, shell=True, check=True,capture_output=True,text=True,preexec_fn=demote(conf['user']['gid'],conf['user']['uid'])).stdout
+
 def check_call(cmd):
     return subprocess.check_call(cmd, shell=True)
-
-
 def get_blk():
     conf['disk'] = [x for x in check_output(cmds['blk']).strip().split('\n') if x.startswith('sd')]
 
@@ -94,6 +101,8 @@ def read_conf():
         conf['user']['gid'] = cfg.getint('user','user_gid')
         #disks
         conf['disk'] = cfg.get('disk','mnt_points')
+        #language
+        conf['language'] = cfg.get('language','lang')
     except Exception:
         # fan
         conf['fan']['lv0'] = 35
@@ -148,6 +157,7 @@ def get_xch_info(cache={}):
         # need to navigate to folder then activtae venv then run cmd
 
         cmd = "cd /home/"+get_username(conf['user']['uid'])+"/chia-blockchain/ && . ./activate && chia farm summary | awk '{ if (NR==2||NR==5) {print $4;} else if (NR==1) {print $3;}}' && deactivate"
+        # info['chia'] = run_output(cmd)
         xch_list = run_output(cmd).split('\n')
         cache['info_status'] = xch_list[0]
         cache['info_xch'] = xch_list[1]
@@ -185,7 +195,6 @@ def slider_next(pages):
     conf['idx'].value += 1
     return pages[conf['idx'].value % len(pages)]
 
-
 def slider_sleep():
     time.sleep(conf['slider']['time'])
 
@@ -199,6 +208,7 @@ def fan_temp2dc(t):
 
 def fan_switch():
     conf['run'].value = not(conf['run'].value)
+
 
 def get_func(key):
     return conf['key'].get(key, 'none')
@@ -223,6 +233,14 @@ def open_pwm_i2c():
 
 conf = {'disk': [], 'idx': mp.Value('d', -1), 'run': mp.Value('d', 1)}
 conf.update(read_conf())
+
+messages = {
+    'welcome': translate("NAS - Chia Farmer"),
+    'loading': translate("loading")+"...",
+    'goodbye': translate("Goodbye")+" ~",
+    'status': translate("Status"),
+    'disk': translate("disk"),
+}
 
 
 if __name__ == '__main__':

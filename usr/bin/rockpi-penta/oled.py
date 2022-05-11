@@ -6,6 +6,13 @@ from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
 
+messages = {
+    'welcome': misc.translate("NAS - Chia Farmer"),
+    'loading': misc.translate("loading")+"...",
+    'goodbye': misc.translate("Goodbye")+" ~",
+    'status': misc.translate("Status"),
+    'disk': misc.translate("disk"),
+}
 font = {
     '10': ImageFont.truetype('fonts/DejaVuSansMono-Bold.ttf', 10),
     '11': ImageFont.truetype('fonts/DejaVuSansMono-Bold.ttf', 11),
@@ -43,13 +50,13 @@ def disp_show():
 
 
 def welcome():
-    draw.text((0, 0), 'ROCK Pi- NAS', font=font['14'], fill=255)
-    draw.text((32, 16), 'chargement...', font=font['12'], fill=255)
+    draw.text((0, 0),misc.messages['welcome'], font=font['14'], fill=255)
+    draw.text((32, 16), misc.messages['loading'], font=font['12'], fill=255)
     disp_show()
 
 
 def goodbye():
-    draw.text((32, 8), 'Au revoir ~', font=font['14'], fill=255)
+    draw.text((32, 8), misc.messages['goodbye'], font=font['14'], fill=255)
     disp_show()
     time.sleep(2)
     disp_show()  # clear
@@ -57,7 +64,7 @@ def goodbye():
 
 def put_disk_info():
     k, v = misc.get_disk_info_mnt() # get_disk_info()
-    text1 = 'Disk: {} {}'.format(k[0], v[0])
+    text1 = '{}: {} {}'.format(misc.messages['disk'],k[0], v[0])
 
     if len(k) == 5:
         text2 = '{} {}  {} {}'.format(k[1], v[1], k[2], v[2])
@@ -82,7 +89,7 @@ def put_disk_info():
 
 def put_xch_info():
     xch = misc.get_xch_info()
-    text1 = 'Etat: {}'.format(xch['info_status'])
+    text1 = '{}: {}'.format(misc.messages['status'],xch['info_status'])
     text2 = 'XCH: {}'.format(xch['info_xch'])
     text3 = 'LHF: {}'.format(xch['info_height'])
     page = [
